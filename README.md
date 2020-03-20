@@ -6,7 +6,7 @@
 
 ![spec status](https://github.com/crystal-term/screen/workflows/specs/badge.svg)
 
-> Terminal screen size detection which works on Linux, OS X and Windows/Cygwin platforms and supports MRI, JRuby and Rubinius interpreters.
+> Terminal screen size detection which works on Linux, OS X and Windows/Cygwin platforms (or will once Windows is supported by Crystal)
 
 **Term::Screen** provides independent terminal screen size detection component for crystal-term.
 
