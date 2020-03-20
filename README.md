@@ -1,6 +1,14 @@
-# screen
+<div align="center">
+  <img src="./assets/term-logo.png" alt="term logo">
+</div>
 
-TODO: Write a description here
+# Term::Cursor
+
+![spec status](https://github.com/crystal-term/screen/workflows/specs/badge.svg)
+
+> Terminal screen size detection which works on Linux, OS X and Windows/Cygwin platforms and supports MRI, JRuby and Rubinius interpreters.
+
+**Term::Screen** provides independent terminal screen size detection component for crystal-term.
 
 ## Installation
 
@@ -8,27 +16,39 @@ TODO: Write a description here
 
    ```yaml
    dependencies:
-     screen:
-       github: watzon/screen
+     cursor:
+       github: crystal-term/screen
    ```
 
 2. Run `shards install`
 
 ## Usage
 
+**Term::Screen** allows you to detect terminal screen size by calling size method which returns {height, width} tuple.
+
 ```crystal
-require "screen"
+Term::Screen.size     # => {51, 280}
 ```
 
-TODO: Write usage instructions here
+To read terminal width do:
 
-## Development
+```crystal
+Term::Screen.width    # => 280
+Term::Screen.columns  # => 280
+Term::Screen.cols     # => 280
+```
 
-TODO: Write development instructions here
+Similarly, to read terminal height do:
+
+```crystal
+Term::Screen.height   # => 51
+Term::Screen.rows     # => 51
+Term::Screen.lines    # => 51
+```
 
 ## Contributing
 
-1. Fork it (<https://github.com/watzon/screen/fork>)
+1. Fork it (<https://github.com/crystal-term/cursor/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)

@@ -10,35 +10,17 @@ module Term
 
     class_property env : Hash(String, String) = ENV.to_h
     class_property output : IO = STDERR
-    class_property cached_size_method : Proc(Tuple(Int32, Int32))? = nil
-
-    # Check if a method returns a correct size and cache it
-    private macro check_size(method_name)
-      begin
-        size = self.{{ method_name.id }}
-
-        unless size.nil?
-          self.cached_size_method = ->{ self.{{ method_name }} }.unsafe_as(Proc(Tuple(Int32, Int32)))
-        end
-
-        size
-      end
-    end
 
     # Get terminal dimensions (rows, columns)
     def size
-      if cached = cached_size_method
-        return cached.call
-      end
-
       # check_size(size_from_win_api) || # TODO
-      result = check_size(size_from_ioctl) ||
+      result = size_from_ioctl ||
         # check_size(size_from_readline) || # TODO maybe
-        check_size(size_from_tput) ||
-        check_size(size_from_stty) ||
-        check_size(size_from_env) ||
-        check_size(size_from_ansicon) ||
-        check_size(size_from_default)
+        size_from_tput ||
+        size_from_stty ||
+        size_from_env ||
+        size_from_ansicon ||
+        size_from_default
 
       result || {0, 0}
     end
@@ -164,5 +146,3 @@ module Term
     end
   end
 end
-
-pp Term::Screen.size
