@@ -1,2 +1,2 @@
-require "../src/screen"
+require "../src/term-screen"
 require "spectator"
