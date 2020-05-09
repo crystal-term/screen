@@ -24,6 +24,10 @@
 
 ## Usage
 
+```crystal
+require "term-screen"
+```
+
 **Term::Screen** allows you to detect terminal screen size by calling size method which returns {height, width} tuple.
 
 ```crystal
