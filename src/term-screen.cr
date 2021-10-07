@@ -14,13 +14,26 @@ module Term
     # Get terminal dimensions (rows, columns)
     def size
       # check_size(size_from_win_api) || # TODO
-      result = size_from_ioctl ||
-        # check_size(size_from_readline) || # TODO maybe
-        size_from_tput ||
-        size_from_stty ||
-        size_from_env ||
-        size_from_ansicon ||
-        size_from_default
+      result = size_from_ioctl
+      if (!result || result[1] == 0)
+        result = size_from_tput
+      end
+      # check_size(size_from_readline) || # TODO maybe
+      if (!result || result[1] == 0)
+        result = size_from_tput
+      end
+      if (!result || result[1] == 0)
+        result = size_from_stty
+      end
+      if (!result || result[1] == 0)
+        result = size_from_env
+      end
+      if (!result || result[1] == 0)
+        result = size_from_ansicon
+      end
+      if (!result || result[1] == 0)
+        result = size_from_default
+      end
 
       result || {0, 0}
     end
