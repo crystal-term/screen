@@ -17,12 +17,12 @@ module Term
       size_from_ioctl ||
         # check_size(size_from_win_api) || # TODO
         check_size(size_from_tput) ||
-        # check_size(size_from_readline) || # TODO maybe
+        check_size(size_from_readline) ||
         check_size(size_from_stty) ||
         check_size(size_from_env) ||
         check_size(size_from_ansicon) ||
         check_size(size_from_default) ||
-        {0, 0}
+        size_from_default
     end
 
     def width
@@ -85,10 +85,9 @@ module Term
 
     # Detect screen size using Readline
     def size_from_readline
-      # LibReadline.reset_screen_size
-      # LibReadline.get_screen_size(out rows, out cols)
-      # {rows, cols}
-      size_from_default
+      init_readline
+      LibReadline.get_screen_size(out rows, out cols)
+      {rows, cols}
     end
 
     # Detect terminal size from tput utility
@@ -149,6 +148,13 @@ module Term
     private def check_size(size)
       if (size) && size[0] != 0 && size[1] != 0
         return size
+      end
+    end
+
+    @@rl_initialized = false
+    private def init_readline
+      if !@@rl_initialized
+        LibReadline.rl_initialize
       end
     end
   end
