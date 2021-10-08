@@ -71,9 +71,9 @@ module Term
       {% if flag?(:linux) %}
         LibC.ioctl(1, TIOCGWINSZ, pointerof(buffer))
       {% elsif flag?(:solaris) %}
-        LibC.ioctl(1, TIOCGWINSZ, pointerof(buffer))
+        LibC.ioctl(1, TIOCGWINSZ_SOL, pointerof(buffer))
       {% else %}
-        LibC.ioctl(1, TIOCGWINSZ, pointerof(buffer))
+        LibC.ioctl(1, TIOCGWINSZ_PPZ, pointerof(buffer))
         {% end %}
 
       if buffer
