@@ -13,16 +13,15 @@ module Term
 
     # Get terminal dimensions (rows, columns)
     def size
-      # check_size(size_from_win_api) || # TODO
-      result = size_from_ioctl ||
+      size_from_ioctl ||
+        # check_size(size_from_win_api) || # TODO
+        check_size(size_from_tput) ||
         # check_size(size_from_readline) || # TODO maybe
-        size_from_tput ||
-        size_from_stty ||
-        size_from_env ||
-        size_from_ansicon ||
-        size_from_default
-
-      result || {0, 0}
+        check_size(size_from_stty) ||
+        check_size(size_from_env) ||
+        check_size(size_from_ansicon) ||
+        check_size(size_from_default) ||
+        {0, 0}
     end
 
     def width
@@ -143,6 +142,12 @@ module Term
 
       rows, cols = [$2, $1].map(&.to_i)
       {rows, cols}
+    end
+
+    private def check_size(size)
+      if (size) && size[0] != 0 && size[1] != 0
+        return size
+      end
     end
   end
 end
