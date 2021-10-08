@@ -1,5 +1,6 @@
 require "./screen/version"
 require "./screen/libs/libc"
+require "./screen/libs/libreadline"
 
 module Term
   module Screen
@@ -56,7 +57,6 @@ module Term
     STDOUT_HANDLE = 0xFFFFFFF5
 
     # Determine terminal size with a Windows native API
-    # TODO
     def size_from_win_api
       size_from_default
     end
@@ -71,9 +71,9 @@ module Term
       {% if flag?(:linux) %}
         LibC.ioctl(1, TIOCGWINSZ, pointerof(buffer))
       {% elsif flag?(:solaris) %}
-        LibC.ioctl(1, TIOCGWINSZ_SOL, pointerof(buffer))
+        LibC.ioctl(1, TIOCGWINSZ_PPC, pointerof(buffer))
       {% else %}
-        LibC.ioctl(1, TIOCGWINSZ_PPZ, pointerof(buffer))
+        LibC.ioctl(1, TIOCGWINSZ_PPC, pointerof(buffer))
         {% end %}
 
       if buffer
@@ -84,8 +84,10 @@ module Term
     end
 
     # Detect screen size using Readline
-    # TODO
     def size_from_readline
+      # LibReadline.reset_screen_size
+      # LibReadline.get_screen_size(out rows, out cols)
+      # {rows, cols}
       size_from_default
     end
 
