@@ -1,6 +1,6 @@
 require "./screen/version"
-require "./screen/libs/libc"
 require "./screen/libs/libreadline"
+require "ioctl"
 
 module Term
   module Screen
@@ -14,7 +14,9 @@ module Term
 
     # Get terminal dimensions (rows, columns)
     def size
-      size_from_ioctl ||
+      size_from_ioctl(STDIN) ||
+        size_from_ioctl(STDOUT) ||
+        size_from_ioctl(STDERR) ||
         # check_size(size_from_win_api) || # TODO
         check_size(size_from_tput) ||
         check_size(size_from_readline) ||
@@ -66,21 +68,12 @@ module Term
     TIOCGWINSZ_SOL = 0x5468 # solaris
 
     # Read terminal size from Unix ioctl
-    def size_from_ioctl
+    def size_from_ioctl(file)
       buffer = uninitialized LibC::Winsize
-      {% if flag?(:linux) %}
-        LibC.ioctl(1, TIOCGWINSZ, pointerof(buffer))
-      {% elsif flag?(:solaris) %}
-        LibC.ioctl(1, TIOCGWINSZ_PPC, pointerof(buffer))
-      {% else %}
-        LibC.ioctl(1, TIOCGWINSZ_PPC, pointerof(buffer))
-        {% end %}
-
-      if buffer
-        buffer.empty? ? nil : {buffer.ws_row.to_i, buffer.ws_col.to_i}
-      else
-        nil
-      end
+      IOCTL.ioctl(file.fd, IOCTL::TIOCGWINSZ, pointerof(buffer))
+      {buffer.ws_row.to_i, buffer.ws_col.to_i}
+    rescue
+      nil
     end
 
     # Detect screen size using Readline

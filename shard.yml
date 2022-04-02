@@ -4,6 +4,10 @@ version: 0.1.0
 authors:
   - Chris Watson <cawatson1993@gmail.com>
 
+dependencies:
+  ioctl:
+    github: crystal-posix/ioctl.cr
+
 development_dependencies:
   spectator:
     gitlab: arctic-fox/spectator
