@@ -2,27 +2,29 @@ require "../spec_helper"
 
 Spectator.describe Term::Screen do
   describe "#width, #height" do
-    mock Term::Screen do;
-      stub size { { 51, 280 } }
+    mock Term::Screen do
+      stub size do
+        {51, 280}
+      end
     end
 
     it "calcualtes screen width" do
-      allow(Term::Screen).to receive(:size).and_return({ 51, 280 })
+      allow(Term::Screen).to receive(:size).and_return({51, 280})
       expect(Term::Screen.width).to eq(280)
     end
 
     it "aliases width to columns" do
-      allow(Term::Screen).to receive(:size).and_return({ 51, 280 })
+      allow(Term::Screen).to receive(:size).and_return({51, 280})
       expect(Term::Screen.columns).to eq(280)
     end
 
     it "aliases width to cols" do
-      allow(Term::Screen).to receive(:size).and_return({ 51, 280 })
+      allow(Term::Screen).to receive(:size).and_return({51, 280})
       expect(Term::Screen.cols).to eq(280)
     end
 
     it "calcualtes screen height" do
-      allow(Term::Screen).to receive(:size).and_return({ 51, 280 })
+      allow(Term::Screen).to receive(:size).and_return({51, 280})
       expect(Term::Screen.height).to eq(51)
     end
 

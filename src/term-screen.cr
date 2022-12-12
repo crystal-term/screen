@@ -1,30 +1,41 @@
 require "./screen/version"
-require "./screen/libs/libreadline"
-require "ioctl"
+
+{% if flag?(:windows) %}
+  require "./screen/libs/winapi"
+{% else %}
+  require "./screen/libs/libreadline"
+  require "ioctl"
+{% end %}
 
 module Term
   module Screen
     extend self
 
     # Default terminal size
-    DEFAULT_SIZE = { 27, 80 }
+    DEFAULT_SIZE = {27, 80}
 
     class_property env : Hash(String, String) = ENV.to_h
     class_property output : IO = STDERR
 
     # Get terminal dimensions (rows, columns)
     def size
-      size_from_ioctl(STDIN) ||
-        size_from_ioctl(STDOUT) ||
-        size_from_ioctl(STDERR) ||
-        # check_size(size_from_win_api) || # TODO
-        check_size(size_from_tput) ||
-        check_size(size_from_readline) ||
-        check_size(size_from_stty) ||
-        check_size(size_from_env) ||
-        check_size(size_from_ansicon) ||
-        check_size(size_from_default) ||
-        size_from_default
+      {% if flag?(:windows) %}
+        check_size(size_from_win_api) ||
+          check_size(size_from_ansicon) ||
+          check_size(size_from_default) ||
+          size_from_default
+      {% else %}
+        size_from_ioctl(STDIN) ||
+          size_from_ioctl(STDOUT) ||
+          size_from_ioctl(STDERR) ||
+          check_size(size_from_tput) ||
+          check_size(size_from_readline) ||
+          check_size(size_from_stty) ||
+          check_size(size_from_env) ||
+          check_size(size_from_ansicon) ||
+          check_size(size_from_default) ||
+          size_from_default
+      {% end %}
     end
 
     def width
@@ -56,16 +67,25 @@ module Term
       DEFAULT_SIZE
     end
 
-    STDOUT_HANDLE = 0xFFFFFFF5
-
-    # Determine terminal size with a Windows native API
     def size_from_win_api
-      size_from_default
+      LibC.GetConsoleScreenBufferInfo(LibC.GetStdHandle(LibC::STDOUT_HANDLE), out csbi)
+      rows = csbi.srWindow.right - csbi.srWindow.left + 1
+      cols = csbi.srWindow.bottom - csbi.srWindow.top + 1
+
+      {cols.to_i32, rows.to_i32}
     end
 
-    TIOCGWINSZ = 0x5413 # linux
+    # Detect terminal size from Windows ANSICON
+    def size_from_ansicon
+      return unless ENV["ANSICON"]?.to_s =~ /\((.*)x(.*)\)/
+
+      rows, cols = [$2, $1].map(&.to_i)
+      {cols, rows}
+    end
+
+    TIOCGWINSZ     =     0x5413 # linux
     TIOCGWINSZ_PPC = 0x40087468 # macos, freedbsd, netbsd, openbsd
-    TIOCGWINSZ_SOL = 0x5468 # solaris
+    TIOCGWINSZ_SOL =     0x5468 # solaris
 
     # Read terminal size from Unix ioctl
     def size_from_ioctl(file)
@@ -130,14 +150,6 @@ module Term
       end
     end
 
-    # Detect terminal size from Windows ANSICON
-    def size_from_ansicon
-      return unless env["ANSICON"]?.to_s =~ /\((.*)x(.*)\)/
-
-      rows, cols = [$2, $1].map(&.to_i)
-      {rows, cols}
-    end
-
     private def check_size(size)
       if (size) && size[0] != 0 && size[1] != 0
         return size
@@ -145,6 +157,7 @@ module Term
     end
 
     @@rl_initialized = false
+
     private def init_readline
       if !@@rl_initialized
         LibReadline.rl_initialize
