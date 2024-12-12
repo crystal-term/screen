@@ -2,7 +2,7 @@
   <img src="./assets/term-logo.png" alt="term logo">
 </div>
 
-# Term::Cursor
+# Term::Screen
 
 ![spec status](https://github.com/crystal-term/screen/workflows/specs/badge.svg)
 
@@ -52,7 +52,7 @@ Term::Screen.lines    # => 51
 
 ## Contributing
 
-1. Fork it (<https://github.com/crystal-term/cursor/fork>)
+1. Fork it (<https://github.com/crystal-term/screen/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
