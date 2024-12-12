@@ -16,7 +16,7 @@
 
    ```yaml
    dependencies:
-     cursor:
+     term-screen:
        github: crystal-term/screen
    ```
 
