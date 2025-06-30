@@ -4,7 +4,34 @@ require "./screen/version"
   require "./screen/libs/winapi"
 {% else %}
   require "./screen/libs/libreadline"
-  require "ioctl"
+{% end %}
+
+{% unless flag?(:windows) %}
+lib LibC
+  struct Winsize
+    ws_row : UShort
+    ws_col : UShort
+    ws_xpixel : UShort
+    ws_ypixel : UShort
+  end
+
+  # Platform-specific TIOCGWINSZ constant
+  {% if flag?(:darwin) || flag?(:bsd) %}
+    TIOCGWINSZ = 0x40087468_u64
+  {% elsif flag?(:linux) %}
+    TIOCGWINSZ = 0x5413_u64
+  {% elsif flag?(:solaris) %}
+    TIOCGWINSZ = 0x5468_u64
+  {% else %}
+    TIOCGWINSZ = 0x5413_u64 # Default to Linux value
+  {% end %}
+
+  {% if flag?(:android) %}
+    fun ioctl(__fd : Int, __request : Int, ...) : Int
+  {% else %}
+    fun ioctl(fd : Int, request : ULong, ...) : Int
+  {% end %}
+end
 {% end %}
 
 module Term
@@ -83,15 +110,22 @@ module Term
       {cols, rows}
     end
 
-    TIOCGWINSZ     =     0x5413 # linux
-    TIOCGWINSZ_PPC = 0x40087468 # macos, freedbsd, netbsd, openbsd
-    TIOCGWINSZ_SOL =     0x5468 # solaris
-
     # Read terminal size from Unix ioctl
     def size_from_ioctl(file)
-      buffer = uninitialized LibC::Winsize
-      IOCTL.ioctl(file.fd, IOCTL::TIOCGWINSZ, pointerof(buffer))
-      {buffer.ws_row.to_i, buffer.ws_col.to_i}
+      {% unless flag?(:windows) %}
+        return nil unless file.responds_to?(:fd)
+        
+        buffer = uninitialized LibC::Winsize
+        result = LibC.ioctl(file.fd, LibC::TIOCGWINSZ, pointerof(buffer))
+        
+        if result == 0 && buffer.ws_row > 0 && buffer.ws_col > 0
+          {buffer.ws_row.to_i32, buffer.ws_col.to_i32}
+        else
+          nil
+        end
+      {% else %}
+        nil
+      {% end %}
     rescue
       nil
     end

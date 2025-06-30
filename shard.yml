@@ -4,15 +4,11 @@ version: 0.1.0
 authors:
   - Chris Watson <cawatson1993@gmail.com>
 
-dependencies:
-  ioctl:
-    github: crystal-posix/ioctl.cr
-
 development_dependencies:
   spectator:
     gitlab: arctic-fox/spectator
-    branch: master
+    version: ~> 0.11.0
 
-crystal: 0.33.0
+crystal: ">= 1.0.0"
 
 license: MIT
