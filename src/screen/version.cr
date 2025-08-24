@@ -1,5 +1,5 @@
 module Term
   module Screen
-    VERSION = "0.3.1"
+    VERSION = "0.2.0"
   end
 end
