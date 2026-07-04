@@ -1,12 +1,12 @@
 require "./screen/version"
 
-{% if flag?(:windows) %}
+{% if flag?(:win32) || flag?(:windows) %}
   require "./screen/libs/winapi"
-{% else %}
+{% elsif !(flag?(:without_readline) || flag?(:term_screen_no_readline)) %}
   require "./screen/libs/libreadline"
 {% end %}
 
-{% unless flag?(:windows) %}
+{% unless flag?(:win32) || flag?(:windows) %}
 lib LibC
   struct Winsize
     ws_row : UShort
@@ -46,7 +46,7 @@ module Term
 
     # Get terminal dimensions (rows, columns)
     def size
-      {% if flag?(:windows) %}
+      {% if flag?(:win32) || flag?(:windows) %}
         check_size(size_from_win_api) ||
           check_size(size_from_ansicon) ||
           check_size(size_from_default) ||
@@ -95,11 +95,21 @@ module Term
     end
 
     def size_from_win_api
-      LibC.GetConsoleScreenBufferInfo(LibC.GetStdHandle(LibC::STDOUT_HANDLE), out csbi)
-      rows = csbi.srWindow.right - csbi.srWindow.left + 1
-      cols = csbi.srWindow.bottom - csbi.srWindow.top + 1
+      {% if flag?(:win32) || flag?(:windows) %}
+        handle = LibC.GetStdHandle(LibC::STDOUT_HANDLE)
+        return nil if handle.null?
+        return nil unless LibC.GetConsoleScreenBufferInfo(handle, out csbi) != 0
 
-      {cols.to_i32, rows.to_i32}
+        rows = csbi.srWindow.bottom - csbi.srWindow.top + 1
+        cols = csbi.srWindow.right - csbi.srWindow.left + 1
+        return nil unless rows > 0 && cols > 0
+
+        {rows.to_i32, cols.to_i32}
+      {% else %}
+        nil
+      {% end %}
+    rescue
+      nil
     end
 
     # Detect terminal size from Windows ANSICON
@@ -112,12 +122,12 @@ module Term
 
     # Read terminal size from Unix ioctl
     def size_from_ioctl(file)
-      {% unless flag?(:windows) %}
+      {% unless flag?(:win32) || flag?(:windows) %}
         return nil unless file.responds_to?(:fd)
-        
+
         buffer = uninitialized LibC::Winsize
         result = LibC.ioctl(file.fd, LibC::TIOCGWINSZ, pointerof(buffer))
-        
+
         if result == 0 && buffer.ws_row > 0 && buffer.ws_col > 0
           {buffer.ws_row.to_i32, buffer.ws_col.to_i32}
         else
@@ -132,9 +142,13 @@ module Term
 
     # Detect screen size using Readline
     def size_from_readline
-      init_readline
-      LibReadline.get_screen_size(out rows, out cols)
-      {rows, cols}
+      {% if flag?(:win32) || flag?(:windows) || flag?(:without_readline) || flag?(:term_screen_no_readline) %}
+        nil
+      {% else %}
+        init_readline
+        LibReadline.get_screen_size(out rows, out cols)
+        {rows, cols}
+      {% end %}
     end
 
     # Detect terminal size from tput utility
@@ -190,12 +204,15 @@ module Term
       end
     end
 
-    @@rl_initialized = false
+    {% unless flag?(:win32) || flag?(:windows) || flag?(:without_readline) || flag?(:term_screen_no_readline) %}
+      @@rl_initialized = false
 
-    private def init_readline
-      if !@@rl_initialized
-        LibReadline.rl_initialize
+      private def init_readline
+        unless @@rl_initialized
+          LibReadline.rl_initialize
+          @@rl_initialized = true
+        end
       end
-    end
+    {% end %}
   end
 end

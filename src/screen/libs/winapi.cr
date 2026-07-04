@@ -1,29 +1,32 @@
-lib LibC
-  STDOUT_HANDLE = 0xFFFFFFF5
+{% skip_file unless flag?(:win32) || flag?(:windows) %}
 
-  struct Point
-    x : UInt16
-    y : UInt16
+@[Link("kernel32")]
+lib LibC
+  STDOUT_HANDLE = 0xFFFF_FFF5_u32
+
+  struct Coord
+    x : Int16
+    y : Int16
   end
 
   struct SmallRect
-    left : UInt16
-    top : UInt16
-    right : UInt16
-    bottom : UInt16
+    left : Int16
+    top : Int16
+    right : Int16
+    bottom : Int16
   end
 
-  struct ScreenBufferInfo
-    dwSize : Point
-    dwCursorPosition : Point
+  struct ConsoleScreenBufferInfo
+    dwSize : Coord
+    dwCursorPosition : Coord
     wAttributes : UInt16
     srWindow : SmallRect
-    dwMaximumWindowSize : Point
+    dwMaximumWindowSize : Coord
   end
 
   alias Handle = Void*
-  alias ScreenBufferInfoPtr = ScreenBufferInfo*
+  alias WinBool = Int32
 
-  fun GetConsoleScreenBufferInfo(handle : Handle, info : ScreenBufferInfoPtr) : Bool
+  fun GetConsoleScreenBufferInfo(handle : Handle, info : ConsoleScreenBufferInfo*) : WinBool
   fun GetStdHandle(handle : UInt32) : Handle
 end

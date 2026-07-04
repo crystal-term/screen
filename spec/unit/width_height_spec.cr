@@ -44,6 +44,22 @@ Spectator.describe Term::Screen do
     end
   end
 
+  describe "#size_from_win_api" do
+    {% unless flag?(:win32) || flag?(:windows) %}
+      it "returns nil outside Windows" do
+        expect(Term::Screen.size_from_win_api).to be_nil
+      end
+    {% end %}
+  end
+
+  describe "#size_from_readline" do
+    {% if flag?(:without_readline) || flag?(:term_screen_no_readline) %}
+      it "returns nil when readline support is disabled" do
+        expect(Term::Screen.size_from_readline).to be_nil
+      end
+    {% end %}
+  end
+
   describe "#size_from_env" do
     it "returns size from environment variables when set" do
       original_env = Term::Screen.env
