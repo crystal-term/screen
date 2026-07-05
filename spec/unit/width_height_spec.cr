@@ -8,6 +8,46 @@ class ScreenWrapper
 end
 
 Spectator.describe Term::Screen do
+  before_each do
+    Term::Screen.invalidate_size_cache
+  end
+
+  describe "#size" do
+    it "caches detected size by default" do
+      original_env = Term::Screen.env
+      begin
+        Term::Screen.env = {"LINES" => "30", "COLUMNS" => "100"}
+        first_size = Term::Screen.size
+
+        Term::Screen.env = {"LINES" => "40", "COLUMNS" => "120"}
+        expect(Term::Screen.size).to eq(first_size)
+      ensure
+        Term::Screen.env = original_env
+        Term::Screen.invalidate_size_cache
+      end
+    end
+
+    it "allows explicit cache invalidation" do
+      first_size = Term::Screen.size
+      Term::Screen.invalidate_size_cache
+
+      expect(Term::Screen.size).to eq(first_size)
+    end
+
+    it "can force detection without filling the cache" do
+      original_env = Term::Screen.env
+      begin
+        uncached_size = Term::Screen.size(cached: false)
+
+        Term::Screen.env = {"LINES" => "40", "COLUMNS" => "120"}
+        expect(Term::Screen.size).to eq(uncached_size)
+      ensure
+        Term::Screen.env = original_env
+        Term::Screen.invalidate_size_cache
+      end
+    end
+  end
+
   describe "#width, #height" do
     it "calculates screen width" do
       # Since we can't mock the module directly, we'll test the actual values

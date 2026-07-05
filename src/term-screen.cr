@@ -44,8 +44,29 @@ module Term
     class_property env : Hash(String, String) = ENV.to_h
     class_property output : IO = STDERR
 
-    # Get terminal dimensions (rows, columns)
-    def size
+    @@size_cache : Tuple(Int32, Int32)? = nil
+    @@winch_installed = false
+
+    # Get terminal dimensions (rows, columns).
+    #
+    # Results are cached by default. On non-Windows platforms a SIGWINCH
+    # handler invalidates the cache when the terminal is resized; installing
+    # that handler replaces any previous SIGWINCH handler. Pass
+    # `cached: false` to force immediate re-detection.
+    def size(cached : Bool = true) : Tuple(Int32, Int32)
+      if cached
+        install_winch_handler
+        @@size_cache ||= detect_size
+      else
+        detect_size
+      end
+    end
+
+    def invalidate_size_cache : Nil
+      @@size_cache = nil
+    end
+
+    private def detect_size
       {% if flag?(:win32) || flag?(:windows) %}
         check_size(size_from_win_api) ||
           check_size(size_from_ansicon) ||
@@ -63,6 +84,16 @@ module Term
           check_size(size_from_default) ||
           size_from_default
       {% end %}
+    end
+
+    private def install_winch_handler : Nil
+      return if @@winch_installed
+
+      {% unless flag?(:win32) || flag?(:windows) %}
+        Signal::WINCH.trap { @@size_cache = nil }
+      {% end %}
+
+      @@winch_installed = true
     end
 
     def width
