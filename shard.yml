@@ -9,6 +9,7 @@ description: Terminal screen size detection
 development_dependencies:
   spectator:
     gitlab: arctic-fox/spectator
+    version: ~> 0.12.4
 
 crystal: ">= 1.0.0"
 
