@@ -82,4 +82,36 @@ Spectator.describe Term::Screen do
       Term::Screen.env = original_env
     end
   end
+
+  describe "#size_from_ansicon" do
+    it "returns rows and columns from ANSICON" do
+      original_env = Term::Screen.env
+      begin
+        Term::Screen.env = {"ANSICON" => "199x9999 (199x50)"}
+        expect(Term::Screen.size_from_ansicon).to eq({50, 199})
+      ensure
+        Term::Screen.env = original_env
+      end
+    end
+
+    it "returns nil for non-numeric ANSICON values" do
+      original_env = Term::Screen.env
+      begin
+        Term::Screen.env = {"ANSICON" => "199x9999 (199xbad)"}
+        expect(Term::Screen.size_from_ansicon).to be_nil
+      ensure
+        Term::Screen.env = original_env
+      end
+    end
+
+    it "returns nil for malformed ANSICON values" do
+      original_env = Term::Screen.env
+      begin
+        Term::Screen.env = {"ANSICON" => "garbage"}
+        expect(Term::Screen.size_from_ansicon).to be_nil
+      ensure
+        Term::Screen.env = original_env
+      end
+    end
+  end
 end

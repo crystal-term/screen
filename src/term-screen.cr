@@ -114,10 +114,13 @@ module Term
 
     # Detect terminal size from Windows ANSICON
     def size_from_ansicon
-      return unless ENV["ANSICON"]?.to_s =~ /\((.*)x(.*)\)/
+      return unless env["ANSICON"]?.to_s =~ /\((.*)x(.*)\)/
 
-      rows, cols = [$2, $1].map(&.to_i)
-      {cols, rows}
+      rows = $2.to_i?
+      cols = $1.to_i?
+      return unless rows && cols
+
+      {rows, cols}
     end
 
     # Read terminal size from Unix ioctl
